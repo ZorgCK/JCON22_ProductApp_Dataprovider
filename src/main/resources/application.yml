@@ -1,6 +1,8 @@
 micronaut:
   application:
     name: JCON22ProductAppDataprovider
+  server:
+    port: 8086
 netty:
   default:
     allocator:

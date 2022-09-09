@@ -14,30 +14,30 @@ public class Category {
 	
 	public Category(final String name)
 	{
-		this.setName(name);
+		this.setCategoryName(name);
 	}
 
-	public String getUuid()
+	public String getCategoryUuid()
 	{
 		return this.uuid;
 	}
 
-	public void setUuid()
-	{
-		this.uuid = UUID.randomUUID().toString();
-	}
-	
-	public void readUuid(String uuid)
+	public void setCategoryUuid(String uuid)
 	{
 		this.uuid = uuid;
 	}
+	
+	public void newUuid()
+	{
+		this.uuid = UUID.randomUUID().toString();
+	}
 
-	public String getName()
+	public String getCategoryName()
 	{
 		return this.categoryName;
 	}
 
-	public void setName(final String name)
+	public void setCategoryName(final String name)
 	{
 		this.categoryName = name;
 	}

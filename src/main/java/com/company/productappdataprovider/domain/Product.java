@@ -14,13 +14,15 @@ public class Product {
 	private String imageName;
 	private byte[] imageBytes;
 
-	public Product() {
+	public Product()
+	{
 
 	}
 
 	public Product(final String name, final String desc, final Category category, final BigDecimal price,
-			final double weight, final int stock) {
-		this.setName(name);
+			final double weight, final int stock)
+	{
+		this.setProductName(name);
 		this.setDescription(desc);
 		this.setCategory(category);
 		this.setUnitPrice(price);
@@ -28,28 +30,33 @@ public class Product {
 		this.setUnitsInStock(stock);
 	}
 
-	public void setUuid() {
-		this.uuid = UUID.randomUUID().toString();
-	}
-
-	public String getUuid() {
-		return this.uuid;
-	}
-	
-	public void readUuid(String uuid)
+	public void setProductUuid(String uuid)
 	{
 		this.uuid = uuid;
 	}
 
-	public String getName() {
+	public String getProductUuid()
+	{
+		return this.uuid;
+	}
+	
+	public void newUuid()
+	{
+		this.uuid = UUID.randomUUID().toString();
+	}
+
+	public String getProductName()
+	{
 		return this.name;
 	}
 
-	public void setName(final String name) {
+	public void setProductName(final String name)
+	{
 		this.name = name;
 	}
 
-	public String getDescription() {
+	public String getDescription()
+	{
 		return this.description;
 	}
 

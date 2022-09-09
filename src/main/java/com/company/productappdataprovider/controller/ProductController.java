@@ -1,94 +1,112 @@
 package com.company.productappdataprovider.controller;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.stream.Collectors;
 
-import com.company.productappdataprovider.domain.Category;
+import java.util.List;
+import java.util.Optional;
 import com.company.productappdataprovider.domain.Product;
 import com.company.productappdataprovider.storage.DB;
-import com.company.productappdataprovider.utils.MockupUtils;
-
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
-import one.microstream.persistence.types.Storer;
+import io.micronaut.http.annotation.Post;
 
-@Controller("/prodcuts")
-public class ProductController {
 
-	@Get("/create")
-	public HttpResponse<?> createProducts()
-	{
-		List<Product> allCreatedProducts = MockupUtils.loadMockupData();
-		
-		DB.root.getProducts().addAll(allCreatedProducts);
-		DB.storageManager.store(DB.root.getProducts());
-		
-		return HttpResponse.ok("Products successfully created!");
-	}
-	
-	@Get("/createSingle")
-	public HttpResponse<?> createSingleProduct()
-	{
-		Category category = new Category("Car");
-		Product product = new Product("SUV", "built in 2021 by <random car company>",
-				category, new BigDecimal(49812.31), 2817,
-				6);
-		
-		DB.root.getProducts().add(product);
-		DB.storageManager.store(DB.root.getProducts());
-		
-		return HttpResponse.ok("Product successfully created!");
-	}
-	
-	@Get
-	public List<Product> getProduct()
-	{
-		return DB.root.getProducts();
-	}
-	
-	@Get("/startsWith_A")
-	public List<Product> getProductsWithA()
-	{
-		return DB.root.getProducts().stream().filter(product -> product.getName().startsWith("A")).collect(Collectors.toList());
-	}
-	
-	@Get("/clear")
-	public HttpResponse<?> clearProducts()
-	{
-		DB.root.getProducts().clear();
-		DB.storageManager.store(DB.root.getProducts());
-		
-		return HttpResponse.ok("Products successfully cleared!");
-	}
-	
-//	@Get("/updateSingle")
-//	public HttpResponse<?> updateSingleProduct()
+@Controller("/products")
+public class ProductController
+{
+
+//	@Get("/list")
+//	public List<Product> getProduct()
 //	{
-//		Product product = DB.root.getProducts().stream().findFirst().get();
-//		DB.storageManager.store(product);
-//		
-//		return HttpResponse.ok("Product successfully updated!");
+//		return DB.root.getProducts();
 //	}
 	
-	@Get("/updateMulti")
-	public HttpResponse<?> updateMultiProducts()
+	@Get("/list")
+	public HttpResponse<List<Product>> getHttpList()
 	{
-		Storer es = DB.storageManager.createEagerStorer();
+		return HttpResponse.ok(DB.root.getProducts());
+	}
+	
+	@Post("/update")
+	public HttpResponse<Product> update(Product product)
+	{
+		Optional<Product> productOptional =
+				DB.root.getProducts().stream().filter(p -> p.getProductUuid().equals(product.getProductUuid())).findFirst();
 		
-		DB.root.getProducts().stream().filter(product -> product.getName().startsWith("A")).forEach(product ->
+		if(productOptional.isPresent())
 		{
-			BigDecimal value = product.getUnitPrice().multiply(new BigDecimal(0.9));
-			product.setUnitPrice(value);
+			Product newProduct = productOptional.get();
+			newProduct.setCategory(product.getCategory());
+			newProduct.setDescription(product.getDescription());
+			newProduct.setImageBytes(product.getImageBytes());
+			newProduct.setImageName(product.getImageName());
+			newProduct.setProductName(product.getProductName());
+			newProduct.setUnitPrice(product.getUnitPrice());
+			newProduct.setUnitsInStock(product.getUnitsInStock());
+			newProduct.setUnitWeight(product.getUnitWeight());
 			
-			es.store(es);
-		});
+			DB.storageManager.store(newProduct);
+			
+			return HttpResponse.ok(newProduct);
+		}
 		
-		es.commit();
+		return HttpResponse.notFound();
+	}
+	
+	@Post("/insert")
+	public HttpResponse<Product> insert(Product product)
+	{
+		// Since UUID is randomized need to check if the same combination is already present
+		// which is most likely the same product
+		Optional<Product> productOptional =
+				DB.root.getProducts().stream()
+				.filter(p -> p.getProductName().equals(product.getProductName()))
+				.filter(p -> p.getCategory().equals(product.getCategory()))
+				.filter(p -> p.getUnitPrice().equals(product.getUnitPrice()))
+				.filter(p -> p.getUnitWeight().equals(product.getUnitWeight()))
+				.filter(p -> p.getUnitsInStock() == product.getUnitsInStock())
+				.findFirst();
 		
-		return HttpResponse.ok("Products successfully updated!");
+		if(!productOptional.isPresent())
+		{
+			Product newProduct = productOptional.get();
+			newProduct.setCategory(product.getCategory());
+			newProduct.setDescription(product.getDescription());
+			newProduct.setImageBytes(product.getImageBytes());
+			newProduct.setImageName(product.getImageName());
+			newProduct.setProductName(product.getProductName());
+			newProduct.setUnitPrice(product.getUnitPrice());
+			newProduct.setUnitsInStock(product.getUnitsInStock());
+			newProduct.setUnitWeight(product.getUnitWeight());
+			
+			//finally sets the given UUID
+			newProduct.newUuid();
+			
+			DB.storageManager.store(newProduct);
+			
+			return HttpResponse.ok(newProduct);
+		}
+		
+		return HttpResponse.notAllowed();
+	}
+	
+	@Post("/delete")
+	public HttpResponse<Product> delete(Product product)
+	{
+		Optional<Product> productOptional =
+				DB.root.getProducts().stream().filter(p -> p.getProductUuid().equals(product.getProductUuid())).findFirst();
+		
+		if(productOptional.isPresent())
+		{
+			Product deleteProduct = productOptional.get();
+			
+			DB.root.getProducts().remove(deleteProduct);
+			DB.storageManager.store(DB.root.getProducts());
+			
+			HttpResponse.ok("Product has been successfully deleted");
+		}
+		
+		return HttpResponse.notFound();
 	}
 	
 }

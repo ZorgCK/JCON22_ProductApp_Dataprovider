@@ -45,7 +45,7 @@ public class MockupUtils
 			// Iterate over employee array
 			categoryList.forEach(emp ->
 			{
-				Category a = parseAuthorObject((JSONObject)emp);
+				Category a = parseCategoryObject((JSONObject)emp);
 				categories.add(a);
 			});
 			
@@ -55,7 +55,7 @@ public class MockupUtils
 			// Iterate over employee array
 			productList.forEach(emp ->
 			{
-				Product product = parseBookObject((JSONObject)emp, categories);
+				Product product = parseProductObject((JSONObject)emp, categories);
 				products.add(product);
 			});
 		}
@@ -75,31 +75,30 @@ public class MockupUtils
 		return products;
 	}
 
-	private static Product parseBookObject(JSONObject product, List<Category> categories)
+	private static Product parseProductObject(JSONObject product, List<Category> categories)
 	{
 		Product p = new Product();
 		
-		p.readUuid((String)product.get("uuid"));
-		p.setName((String)product.get("name"));
+		p.setProductUuid((String)product.get("uuid"));
+		p.setProductName((String)product.get("name"));
 		p.setDescription((String)product.get("description"));
-		p.setImageName((String)product.get("imagename"));
 		
-		p.setUnitPrice(new BigDecimal((String) product.get("price")));
-		p.setUnitWeight(Double.parseDouble((String)product.get("weight")));
-		p.setUnitsInStock(Integer.parseInt((String)product.get("stock")));
+		p.setUnitPrice(new BigDecimal(product.get("price").toString()));
+		p.setUnitWeight((Double)(product.get("weight")));
+		p.setUnitsInStock(Integer.parseInt(product.get("stock").toString()));
 		
-		String categoryId = (String)product.get("categoryId");
-		p.setCategory(categories.stream().filter(c -> c.getUuid().equals(categoryId)).findFirst().get());
-				
+		String cat = (String)product.get("category");
+		p.setCategory(categories.stream().filter(c -> c.getCategoryUuid().equals(cat)).findFirst().get());
+								
 		return p;
 	}
 	
-	private static Category parseAuthorObject(JSONObject category)
+	private static Category parseCategoryObject(JSONObject category)
 	{
 		Category c = new Category();
 		
-		c.setName((String)category.get("name"));
-		c.readUuid((String)category.get("uuid"));
+		c.setCategoryUuid((String)category.get("uuid"));
+		c.setCategoryName((String)category.get("categoryName"));
 				
 		return c;
 	}
