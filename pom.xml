@@ -25,6 +25,11 @@
 
 	<repositories>
 		<repository>
+			<id>msee</id>
+			<url>https://repo.microstream.one/repository/ms-ee/</url>
+		</repository>
+
+		<repository>
 			<id>central</id>
 			<url>https://repo.maven.apache.org/maven2</url>
 		</repository>
@@ -93,7 +98,13 @@
     	</artifactId>
 			<version>07.01.00-MS-beta2</version>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>one.microstream</groupId>
+			<artifactId>microstream-enterprise-afs-aws-s3</artifactId>
+			<version>07.00.00-MS-GA</version>
+		</dependency>
+
 		<!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
