@@ -1,8 +1,11 @@
 
 package com.company.productappdataprovider.storage;
 
+import java.time.Duration;
+
 import one.microstream.enterprise.afs.aws.s3.types.S3Connector;
 import one.microstream.enterprise.afs.blobstore.types.BlobStoreFileSystem;
+import one.microstream.storage.embedded.configuration.types.EmbeddedStorageConfigurationBuilder;
 import one.microstream.storage.embedded.types.EmbeddedStorage;
 import one.microstream.storage.embedded.types.EmbeddedStorageManager;
 import software.amazon.awssdk.auth.credentials.SystemPropertyCredentialsProvider;
@@ -33,7 +36,7 @@ public final class DB
 			S3Connector.Caching(s3));
 		
 		String S3bucketname = "msstorage-jcon22-dataprovider";
-		storageManager = EmbeddedStorage.start(root, fileSystem.ensureDirectoryPath(S3bucketname));
+		storageManager = EmbeddedStorage.start(root, fileSystem.ensureDirectoryPath(S3bucketname));			
 	}
 	
 }
