@@ -1,100 +1,114 @@
 package com.company.productappdataprovider.controller;
 
-
 import java.util.List;
 import java.util.Optional;
+
+import com.company.productappdataprovider.domain.Category;
 import com.company.productappdataprovider.domain.Product;
+import com.company.productappdataprovider.dto.DTOProduct;
 import com.company.productappdataprovider.storage.DB;
 import io.micronaut.http.HttpResponse;
+import io.micronaut.http.MediaType;
+import io.micronaut.http.annotation.Consumes;
 import io.micronaut.http.annotation.Controller;
+import io.micronaut.http.annotation.Delete;
 import io.micronaut.http.annotation.Get;
+import io.micronaut.http.annotation.Patch;
 import io.micronaut.http.annotation.Post;
+import io.micronaut.http.annotation.Put;
+import io.micronaut.http.annotation.QueryValue;
 
 
 @Controller("/products")
 public class ProductController
 {
-
-//	@Get("/list")
-//	public List<Product> getProduct()
-//	{
-//		return DB.root.getProducts();
-//	}
 	
-	@Get("/list")
+	@Get
 	public HttpResponse<List<Product>> getHttpList()
 	{
 		return HttpResponse.ok(DB.root.getProducts());
 	}
 	
-	@Post("/update")
-	public HttpResponse<Product> update(Product product)
+	@Patch
+	@Consumes(value = MediaType.APPLICATION_JSON)
+	public HttpResponse<Product> update(DTOProduct dto)
 	{
 		Optional<Product> productOptional =
-				DB.root.getProducts().stream().filter(p -> p.getProductUuid().equals(product.getProductUuid())).findFirst();
+			DB.root.getProducts().stream().filter(p -> p.getProductUuid().equals(dto.getUuid())).findFirst();
 		
 		if(productOptional.isPresent())
 		{
-			Product newProduct = productOptional.get();
-			newProduct.setCategory(product.getCategory());
-			newProduct.setDescription(product.getDescription());
-			newProduct.setImageBytes(product.getImageBytes());
-			newProduct.setImageName(product.getImageName());
-			newProduct.setProductName(product.getProductName());
-			newProduct.setUnitPrice(product.getUnitPrice());
-			newProduct.setUnitsInStock(product.getUnitsInStock());
-			newProduct.setUnitWeight(product.getUnitWeight());
+			Product productToUpdate = productOptional.get();
 			
-			DB.storageManager.store(newProduct);
+			Optional<Category> optionalCategory = DB.root.getCategories().parallelStream().filter(
+				c -> c.getCategoryName().equals(dto.getCategory())).findAny();
 			
-			return HttpResponse.ok(newProduct);
+			if(optionalCategory.isPresent())
+			{
+				productToUpdate.setCategory(optionalCategory.get());
+			}
+			else
+			{
+				Category category = new Category(dto.getCategory());
+				DB.root.getCategories().add(category);
+				DB.storageManager.store(DB.root.getCategories());
+				
+				productToUpdate.setCategory(category);
+			}
+			
+			productToUpdate.setDescription(dto.getDescription());
+			productToUpdate.setProductName(dto.getName());
+			productToUpdate.setUnitPrice(dto.getUnitPrice());
+			productToUpdate.setUnitsInStock(dto.getUnitsInStock());
+			productToUpdate.setUnitWeight(dto.getUnitWeight());
+			
+			DB.storageManager.store(productToUpdate);
+			
+			return HttpResponse.ok(productToUpdate);
 		}
 		
 		return HttpResponse.notFound();
 	}
 	
-	@Post("/insert")
-	public HttpResponse<Product> insert(Product product)
+	@Put
+	@Consumes(value = MediaType.APPLICATION_JSON)
+	public HttpResponse<Product> insert(DTOProduct dto)
 	{
-		// Since UUID is randomized need to check if the same combination is already present
-		// which is most likely the same product
-		Optional<Product> productOptional =
-				DB.root.getProducts().stream()
-				.filter(p -> p.getProductName().equals(product.getProductName()))
-				.filter(p -> p.getCategory().equals(product.getCategory()))
-				.filter(p -> p.getUnitPrice().equals(product.getUnitPrice()))
-				.filter(p -> p.getUnitWeight().equals(product.getUnitWeight()))
-				.filter(p -> p.getUnitsInStock() == product.getUnitsInStock())
-				.findFirst();
+		Product newProduct = new Product();
+		newProduct.setDescription(dto.getDescription());
+		newProduct.setProductName(dto.getName());
+		newProduct.setUnitPrice(dto.getUnitPrice());
+		newProduct.setUnitsInStock(dto.getUnitsInStock());
+		newProduct.setUnitWeight(dto.getUnitWeight());
 		
-		if(!productOptional.isPresent())
+		Optional<Category> optionalCategory = DB.root.getCategories().parallelStream().filter(
+			c -> c.getCategoryName().equals(dto.getCategory())).findAny();
+		
+		if(optionalCategory.isPresent())
 		{
-			Product newProduct = productOptional.get();
-			newProduct.setCategory(product.getCategory());
-			newProduct.setDescription(product.getDescription());
-			newProduct.setImageBytes(product.getImageBytes());
-			newProduct.setImageName(product.getImageName());
-			newProduct.setProductName(product.getProductName());
-			newProduct.setUnitPrice(product.getUnitPrice());
-			newProduct.setUnitsInStock(product.getUnitsInStock());
-			newProduct.setUnitWeight(product.getUnitWeight());
+			newProduct.setCategory(optionalCategory.get());
+		}
+		else
+		{
+			Category category = new Category(dto.getCategory());
+			DB.root.getCategories().add(category);
+			DB.storageManager.store(DB.root.getCategories());
 			
-			//finally sets the given UUID
-			newProduct.newUuid();
-			
-			DB.storageManager.store(newProduct);
-			
-			return HttpResponse.ok(newProduct);
+			newProduct.setCategory(category);
 		}
 		
-		return HttpResponse.notAllowed();
+		DB.root.getProducts().add(newProduct);
+		DB.storageManager.store(DB.root.getProducts());
+		
+		return HttpResponse.ok(newProduct);
 	}
 	
-	@Post("/delete")
-	public HttpResponse<Product> delete(Product product)
+	@Delete
+	@Consumes(value = MediaType.ALL)
+	public HttpResponse<String> delete(@QueryValue String uuid)
 	{
 		Optional<Product> productOptional =
-				DB.root.getProducts().stream().filter(p -> p.getProductUuid().equals(product.getProductUuid())).findFirst();
+			DB.root.getProducts().stream().filter(p -> p.getProductUuid().equals(uuid)).findFirst();
 		
 		if(productOptional.isPresent())
 		{
@@ -103,7 +117,7 @@ public class ProductController
 			DB.root.getProducts().remove(deleteProduct);
 			DB.storageManager.store(DB.root.getProducts());
 			
-			HttpResponse.ok("Product has been successfully deleted");
+			return HttpResponse.ok("Product has been successfully deleted");
 		}
 		
 		return HttpResponse.notFound();
