@@ -15,18 +15,13 @@ import com.company.productappdataprovider.domain.Product;
  */
 public class DataRoot
 {
-	private List<Product>			products	= new ArrayList<Product>();
+	private final List<Product>		products	= new ArrayList<Product>();
 	private final List<Category>	categories	= new ArrayList<Category>();
 	private boolean					firstStart	= true;
 	
 	public List<Product> getProducts()
 	{
 		return products;
-	}
-	
-	public void setProducts(final List<Product> products)
-	{
-		this.products = products;
 	}
 	
 	public List<Category> getCategories()

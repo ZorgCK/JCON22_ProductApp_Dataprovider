@@ -12,6 +12,7 @@ import io.micronaut.context.event.StartupEvent;
 import io.micronaut.runtime.event.annotation.EventListener;
 import jakarta.inject.Singleton;
 
+
 @Singleton
 public class MicronautEventListener
 {
@@ -26,7 +27,10 @@ public class MicronautEventListener
 			DB.storageManager.store(DB.root.getProducts());
 			
 			List<Category> allCreatedCategories = new ArrayList<Category>();
-			allCreatedProducts.stream().forEach(c -> {allCreatedCategories.add(c.getCategory());});
+			allCreatedProducts.stream().forEach(c ->
+			{
+				allCreatedCategories.add(c.getCategory());
+			});
 			
 			DB.root.getCategories().addAll(allCreatedCategories);
 			DB.storageManager.store(DB.root.getCategories());
